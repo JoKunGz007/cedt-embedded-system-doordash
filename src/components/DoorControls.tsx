@@ -67,7 +67,7 @@ export default function DoorControls({
         </button>
         <button
           style={buttonStyle}
-          onClick={() => onSetMode("free")}
+          onClick={() => onSetMode("fingerprint")}
           disabled={busy || !status}
         >
           Mode: Free

@@ -43,7 +43,7 @@ export default function DoorStatusCard({ status, loading }: Props) {
         </div>
         <div>
           <strong>Vent:</strong>{" "}
-          {status.ventOn ? "ON" : "OFF"} {status.ventAuto ? "(auto)" : "(manual)"}
+          {status.ventAuto ? "ON" : "OFF"} {status.ventAuto ? "(auto)" : "(manual)"}
         </div>
         <div style={{ fontSize: 12, color: "#6b7280" }}>
           Last updated: {new Date(status.lastUpdated).toLocaleTimeString()}
