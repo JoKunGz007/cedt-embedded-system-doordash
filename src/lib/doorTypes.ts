@@ -1,23 +1,34 @@
-// lib/doorTypes.ts
 /** @typedef {'password' | 'fingerprint' | 'rfid' | 'off'} DoorMode */
 export type DoorMode = 'password' | 'fingerprint' | 'rfid' | 'off';
 
-/** @typedef {'INFO' | 'WARN' | 'ERROR'} LogLevel */
-export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
+/** @typedef {'INFO' | 'WARN' | 'ERROR' | 'ALERT'} LogLevel */
+export type LogLevel = 'INFO' | 'WARN' | 'ERROR' | 'ALERT';
 
 /**
  * @interface DoorStatus
  * @description สถานะปัจจุบันของประตูที่ได้รับจาก Firebase Realtime Database /state
+ * **NOTE:** The structure has been updated to match the incoming data.
  */
 export interface DoorStatus {
-    doorOpen: boolean;
-    locked: boolean;
-    mode: DoorMode;
+    /** true/false based on system AI state */
+    AI: boolean;
+    /** Current door state: "OPEN" | "CLOSE" */
+    doorStatus: 'OPEN' | 'CLOSE';
+    /** Fire state: "No" | "Yes" */
+    fire_State: 'No' | 'Yes';
+    /** Relative humidity in % */
+    humidity: number;
+    /** UNIX timestamp (milliseconds) of the last update */
+    lastUpdate: number;
+    /** Current lock state: "LOCK" | "UNLOCK" */
+    lockStatus: 'LOCK' | 'UNLOCK';
+    /** Temperature threshold for control logic */
+    tempThreshold: number;
+    /** Current temperature in Celsius */
     temperature: number;
-    fanState: boolean;       // สถานะพัดลม (Manual ON/OFF)
-    ventAuto: boolean;       // โหมด Auto/Manual สำหรับพัดลม
-    tempThreshold: number;   // เกณฑ์อุณหภูมิสำหรับโหมด Auto (ค่าที่เรากำลังแก้ไข)
-    lastUpdated: string;     // ISO timestamp ของการอัปเดตล่าสุด
+    password: string;
+    // NOTE: Original fields like 'doorOpen', 'locked', 'mode', 'fanState', 'ventAuto', 'lastUpdated' (as string) 
+    // were removed or renamed to match the provided data fields.
 }
 
 /**
@@ -25,9 +36,9 @@ export interface DoorStatus {
  * @description ข้อมูล Log ที่อ่านจาก Firebase Realtime Database /logs
  */
 export interface DoorLogEntry {
-    id: string;              // Unique ID ของ Log entry
-    timestamp: string;       // ISO timestamp
-    level: LogLevel;         // ระดับความสำคัญของ Log
-    message: string;         // ข้อความสรุป
-    details: string;         // JSON string ของรายละเอียด Log ทั้งหมด
+    id: string;             // Unique ID ของ Log entry
+    timestamp: string;      // ISO timestamp
+    level: LogLevel;        // ระดับความสำคัญของ Log
+    message: string;        // ข้อความสรุป
+    details: string;        // JSON string ของรายละเอียด Log ทั้งหมด
 }
