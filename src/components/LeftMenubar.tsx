@@ -141,7 +141,7 @@ const LeftMenuBar: React.FC<{ status: UpdatedDoorStatus | null; loading: boolean
                         value={status.temperature}
                         unit="°C"
                         color="#f59e0b"
-                        max={40} // Max scale for temperature
+                        max={status?.tempThreshold ?? 28} // Max scale for temperature
                     />
                     
                     {/* 💧 Humidity Gauge */}

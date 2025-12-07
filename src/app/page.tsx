@@ -397,8 +397,8 @@ export default function Page() {
                     </div>
                     
                     {/* ➡️ คอลัมน์ขวา: บันทึก (1fr) ➡️ */}
-                    <div>
-                        <LogsPanel logs={logs} loading={loadingLogs} />
+                    <div style={{ height: "100%", minHeight: 0 }}>
+                      <LogsPanel logs={logs} loading={loadingLogs} />
                     </div>
                 </div>
             </div>

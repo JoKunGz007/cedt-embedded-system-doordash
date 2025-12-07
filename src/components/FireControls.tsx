@@ -34,7 +34,7 @@ const buttonStyle: React.CSSProperties = {
 
 const applyButtonStyle: React.CSSProperties = {
   ...buttonStyle,
-  border: "1px solid #ffffffff", // สีเขียว
+  border: "1px solid #ffffffff",
   background: "#8a86e3ff",
   color: "#ffffffff",
 };
@@ -45,56 +45,75 @@ export default function FireControls({
   onSetThreshold,
   onRingBell,
 }: Props) {
-  const [localThreshold, setLocalThreshold] = useState<number>(
-    status?.tempThreshold ?? 28
-  );
+  // ✅ "current threshold" from backend/polling
+  const currentThreshold = status?.tempThreshold ?? 28;
 
+  // ✅ "draft threshold" user edits (won't be overwritten by polling)
+  const [draftThreshold, setDraftThreshold] = useState<number>(currentThreshold);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // ✅ sync draft only when user is NOT editing
   useEffect(() => {
-    // ซิงค์ localThreshold กับ status ที่ได้รับมาใหม่
-    if (status) setLocalThreshold(status.tempThreshold);
-  }, [status]);
+    if (!isDirty) setDraftThreshold(currentThreshold);
+  }, [currentThreshold, isDirty]);
 
   const handleApplyThreshold = () => {
     if (!status || busy) return;
-    onSetThreshold(localThreshold);
+    onSetThreshold(draftThreshold);
+    setIsDirty(false); // allow syncing again after apply
   };
 
-  const isFireAlert = status?.fire_State === 'Yes';
-  const fireStatusColor = isFireAlert ? '#dc2626' : '#16a34a'; // Red or Green
+  const isFireAlert = status?.fire_State === "Yes";
+  const fireStatusColor = isFireAlert ? "#dc2626" : "#16a34a"; // Red or Green
 
   return (
     <div style={cardStyle}>
-      <h2 style={{ 
-          fontSize: 18, 
-          fontWeight: 700, 
-          marginBottom: 12, 
-          color: isFireAlert ? fireStatusColor : '#1f2937'
-        }}>
+      <h2
+        style={{
+          fontSize: 18,
+          fontWeight: 700,
+          marginBottom: 12,
+          color: isFireAlert ? fireStatusColor : "#1f2937",
+        }}
+      >
         Fire & Climate Controls
       </h2>
 
       {!status ? (
-        <div style={{ color: '#6b7280' }}>
-          กำลังโหลดข้อมูลสถานะ...
-        </div>
+        <div style={{ color: "#6b7280" }}>กำลังโหลดข้อมูลสถานะ...</div>
       ) : (
         <>
           {/* สถานะอัคคีภัย */}
-          <div style={{ marginBottom: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+          <div
+            style={{
+              marginBottom: 12,
+              padding: "8px 0",
+              borderBottom: "1px solid #f3f4f6",
+            }}
+          >
             <strong style={{ marginRight: 8 }}>Fire Alert Status:</strong>
-            <span style={{ 
-              fontWeight: 700, 
-              color: fireStatusColor,
-              backgroundColor: isFireAlert ? '#fef2f2' : '#f0fdf4',
-              padding: '4px 8px',
-              borderRadius: 6,
-            }}>
+            <span
+              style={{
+                fontWeight: 700,
+                color: fireStatusColor,
+                backgroundColor: isFireAlert ? "#fef2f2" : "#f0fdf4",
+                padding: "4px 8px",
+                borderRadius: 6,
+              }}
+            >
               {isFireAlert ? "FIRE DETECTED!" : "Normal"}
             </span>
           </div>
-          
+
           {/* ข้อมูลสภาพแวดล้อม: อุณหภูมิและความชื้น */}
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 14 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 16,
+              fontSize: 14,
+            }}
+          >
             <div>
               <strong>Temperature:</strong> {status.temperature.toFixed(1)}°C
             </div>
@@ -102,15 +121,26 @@ export default function FireControls({
               <strong>Humidity:</strong> {status.humidity.toFixed(1)}%
             </div>
           </div>
-          
-          {/* การควบคุม Threshold */}
+
+          {/* ✅ แสดง threshold ปัจจุบัน (มาจาก backend/polling) */}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 14 }}>
+            <div>
+              <strong>Current Threshold:</strong> {currentThreshold}°C
+            </div>
+            {isDirty && <div style={{ fontSize: 12, color: "#6b7280" }}>Unsaved change</div>}
+          </div>
+
+          {/* การควบคุม Threshold (ค่าใหม่แยกจากค่าปัจจุบัน) */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <label style={{ fontSize: 14, fontWeight: 500 }}>
               Temp Threshold (°C):
               <input
                 type="number"
-                value={localThreshold}
-                onChange={(e) => setLocalThreshold(Number(e.target.value))}
+                value={draftThreshold}
+                onChange={(e) => {
+                  setDraftThreshold(Number(e.target.value));
+                  setIsDirty(true);
+                }}
                 min="0"
                 max="50"
                 style={{
@@ -124,25 +154,43 @@ export default function FireControls({
                 disabled={busy}
               />
             </label>
+
             <button
               style={applyButtonStyle}
               onClick={handleApplyThreshold}
-              disabled={busy}
+              disabled={busy || !isDirty}
             >
               Set Threshold
+            </button>
+
+            {/* Optional: ยกเลิกการแก้ไข (ย้อนกลับไปค่าปัจจุบัน) */}
+            <button
+              style={{ ...applyButtonStyle, background: "#f3f4f6", color: "#111827" }}
+              onClick={() => {
+                setDraftThreshold(currentThreshold);
+                setIsDirty(false);
+              }}
+              disabled={busy || !isDirty}
+            >
+              Cancel
             </button>
           </div>
 
           {/* การจำลองการแจ้งเตือน */}
-          <div style={{ marginTop: 12, borderTop: '1px solid #f3f4f6', paddingTop: 12 }}>
+          <div style={{ marginTop: 12, borderTop: "1px solid #f3f4f6", paddingTop: 12 }}>
             <button
-              style={{...buttonStyle, background: '#8a86e3ff', color: '#ffffffff', borderColor: '#f1a636ff'}}
+              style={{
+                ...buttonStyle,
+                background: "#8a86e3ff",
+                color: "#ffffffff",
+                borderColor: "#f1a636ff",
+              }}
               onClick={onRingBell}
               disabled={busy}
             >
               KnockKnock Board / Ping
             </button>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+            <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>
               (for testing logging Connecting purposes)
             </p>
           </div>
