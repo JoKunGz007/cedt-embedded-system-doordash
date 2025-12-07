@@ -7,7 +7,8 @@ import { DoorStatus, DoorLogEntry, DoorMode } from "@/lib/doorTypes";
 import DoorStatusCard from "@/components/DoorStatusCard";
 import FireControls from "@/components/FireControls";
 import LogsPanel from "@/components/LogsPanel";
-
+import LeftMenuBar from "@/components/LeftMenubar";
+import LeftNavigator from "@/components/LeftNavigator";
 // จำลอง Component สำหรับ User Profile
 const UserProfile = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
@@ -163,6 +164,8 @@ export default function Page() {
         }
     };
 
+    
+
 
     const handleRefresh = () => wrapAsyncCommand(refreshStatusFromHardware, "refreshStatusFromHardware");
     const handleLogout = () => {
@@ -182,7 +185,7 @@ export default function Page() {
         }
 
         if (newPassword !== confirmNewPassword) {
-            setPwMessage({ text: 'รหัสผ่านใหม่และการยืนยันไม่ตรงกัน', type: 'error' });
+            setPwMessage({ text: 'Not match!', type: 'error' });
             return;
         }
 
@@ -192,7 +195,7 @@ export default function Page() {
             await setPassword(oldPassword, newPassword); 
             
             // Success
-            setPwMessage({ text: 'เปลี่ยนรหัสผ่านสำเร็จ! ระบบกำลังซิงค์ข้อมูล', type: 'success' });
+            setPwMessage({ text: 'Done successfully', type: 'success' });
             setOldPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
@@ -215,7 +218,10 @@ export default function Page() {
 
     return (
         <div style={appStyle}>
+          {status && <LeftNavigator currentTemperature={status.temperature} currentHumidity={status.humidity}/>}
+         
             <div style={layoutStyle}>
+              
                 
                 {/* 🚀 Top Menu / Header (รวม Profile & Logout) 🚀 */}
                 <header style={{ 
@@ -226,7 +232,9 @@ export default function Page() {
                     paddingBottom: 16,
                     borderBottom: '1px solid #e5e7eb'
                 }}>
+                  
                     <div style={{ display: 'flex', alignItems: 'center' }}>
+                      
                         <h1
                             style={{
                                 fontSize: 28,
@@ -273,11 +281,17 @@ export default function Page() {
                         **ERROR:** {error}
                     </div>
                 )}
+                 
+                <div style={{ marginBottom: 32 }}> 
+                <LeftMenuBar status={status} loading={loadingStatus} />
+            </div>
 
 
                 <div style={gridStyle}>
+                  
                     {/* ⬅️ คอลัมน์ซ้าย: สถานะและการควบคุม (2fr) ⬅️ */}
                     <div> 
+                      
                         <DoorStatusCard 
                             status={{...status, passwordStatus: status?.password ?? "UNKNOWN"}} 
                             loading={loadingStatus} 
@@ -332,7 +346,7 @@ export default function Page() {
                                     />
                                     <input 
                                         type="password" 
-                                        placeholder="new password 4+digits" 
+                                        placeholder="new password 4 digits" 
                                         value={newPassword} 
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         required
@@ -368,14 +382,18 @@ export default function Page() {
                                 </form>
                             </div>
                         </div>
-                        
-                        {/* ⭐️ ส่วนควบคุมอื่นๆ (FireControls - ควรมีการปรับสไตล์ภายใน component เอง) ⭐️ */}
-                        <FireControls
+                         {/* <div >
+                           <LeftMenuBar status={status} loading={loadingStatus} />
+                         </div> */}
+                       <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 20 }}> <FireControls
                             status={status}
                             busy={busy}
                             onSetThreshold={handleSetThreshold}
                             onRingBell={handleRingBell} 
-                        />
+                        /> </div>
+                        {/* ⭐️ ส่วนควบคุมอื่นๆ (FireControls - ควรมีการปรับสไตล์ภายใน component เอง) ⭐️ */}
+                        
+                        
                     </div>
                     
                     {/* ➡️ คอลัมน์ขวา: บันทึก (1fr) ➡️ */}

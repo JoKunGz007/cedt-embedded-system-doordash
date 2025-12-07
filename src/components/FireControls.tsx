@@ -140,10 +140,10 @@ export default function FireControls({
               onClick={onRingBell}
               disabled={busy}
             >
-              Simulate Doorbell / Alert 
+              KnockKnock Board / Ping
             </button>
             <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
-              (for testing logging purposes)
+              (for testing logging Connecting purposes)
             </p>
           </div>
         </>
