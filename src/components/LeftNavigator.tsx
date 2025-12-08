@@ -22,69 +22,55 @@ const MENU_TRANSITION = 'width 0.3s ease-in-out';
  * 🌡️ Hook: useRealtimeTemperature
  * 🚨 แก้ไข: ลบ Math.random() ออก โดยใช้ initialTemp คงที่
  */
-const useRealtimeTemperature = (initialTemp: number) => {
-    const [history, setHistory] = useState<TemperatureData[]>([]);
+// ✅ Replace your two hooks with these (keep the rest of the file the same)
 
-    useEffect(() => {
-        // เพิ่มค่าเริ่มต้นเมื่อ Component โหลด
-        setHistory([{ timestamp: Date.now(), temp: initialTemp }]);
+const useRealtimeTemperature = (currentTemp: number) => {
+  const [history, setHistory] = useState<TemperatureData[]>(() => [
+    { timestamp: Date.now(), temp: Number(currentTemp.toFixed(1)) },
+  ]);
 
-        const interval = setInterval(() => {
-            // 🚨 เปลี่ยน: ใช้ initialTemp โดยตรง ไม่มีการสุ่มค่า
-            const newTemp = initialTemp;
-            const now = Date.now();
+  useEffect(() => {
+    const now = Date.now();
+    const newEntry: TemperatureData = { timestamp: now, temp: Number(currentTemp.toFixed(1)) };
 
-            setHistory(prevHistory => {
-                const maxPoints = 100;
-                
-                // เพิ่มข้อมูลใหม่
-                const newEntry: TemperatureData = { timestamp: now, temp: parseFloat(newTemp.toFixed(1)) };
-                
-                let updatedHistory = [...prevHistory, newEntry];
+    setHistory((prev) => {
+      const maxPoints = 100;
 
-                // จำกัดจำนวนจุดในกราฟ
-                if (updatedHistory.length > maxPoints) {
-                    updatedHistory = updatedHistory.slice(updatedHistory.length - maxPoints);
-                }
-                
-                return updatedHistory;
-            });
-        }, 5000); // อัปเดตทุก 5 วินาที
+      // (optional) avoid adding duplicates too fast
+      const last = prev[prev.length - 1];
+      if (last && last.temp === newEntry.temp && now - last.timestamp < 800) return prev;
 
-        return () => clearInterval(interval); // Cleanup
-    }, [initialTemp]); // initialTemp ถูกใช้เป็น Dependency เพื่อให้ Hook อัปเดตเมื่อค่า Prop เปลี่ยน
-    return history;
+      const next = [...prev, newEntry];
+      return next.length > maxPoints ? next.slice(-maxPoints) : next;
+    });
+  }, [currentTemp]);
+
+  return history;
 };
 
-/**
- * 💧 Hook: useRealtimeHumidity
- * 🚨 แก้ไข: ลบ Math.random() ออก โดยใช้ initialHumidity คงที่
- */
-const useRealtimeHumidity = (initialHumidity: number) => {
-    const [history, setHistory] = useState<HumidityData[]>([]);
+const useRealtimeHumidity = (currentHumidity: number) => {
+  const [history, setHistory] = useState<HumidityData[]>(() => [
+    { timestamp: Date.now(), humidity: Number(currentHumidity.toFixed(1)) },
+  ]);
 
-    useEffect(() => {
-        setHistory([{ timestamp: Date.now(), humidity: initialHumidity }]);
-        const interval = setInterval(() => {
-            // 🚨 เปลี่ยน: ใช้ initialHumidity โดยตรง ไม่มีการสุ่มค่า
-            const newHumidity = initialHumidity;
-            const clampedHumidity = Math.min(100, Math.max(0, newHumidity));
-            const now = Date.now();
-            setHistory(prevHistory => {
-                const maxPoints = 100;
-                const newEntry: HumidityData = { timestamp: now, humidity: parseFloat(clampedHumidity.toFixed(1)) };
-                let updatedHistory = [...prevHistory, newEntry];
-                if (updatedHistory.length > maxPoints) {
-                    updatedHistory = updatedHistory.slice(updatedHistory.length - maxPoints);
-                }
-                return updatedHistory;
-            });
-        }, 5000); 
-        return () => clearInterval(interval);
-    }, [initialHumidity]); // initialHumidity ถูกใช้เป็น Dependency
-    return history;
+  useEffect(() => {
+    const now = Date.now();
+    const clamped = Math.min(100, Math.max(0, currentHumidity));
+    const newEntry: HumidityData = { timestamp: now, humidity: Number(clamped.toFixed(1)) };
+
+    setHistory((prev) => {
+      const maxPoints = 100;
+
+      const last = prev[prev.length - 1];
+      if (last && last.humidity === newEntry.humidity && now - last.timestamp < 800) return prev;
+
+      const next = [...prev, newEntry];
+      return next.length > maxPoints ? next.slice(-maxPoints) : next;
+    });
+  }, [currentHumidity]);
+
+  return history;
 };
-
 
 // 💡 Component จำลองกราฟ (เนื่องจากใช้ไลบรารีจริงไม่ได้)
 const RealtimeTemperatureChart: React.FC<{ data: TemperatureData[] }> = ({ data }) => {
